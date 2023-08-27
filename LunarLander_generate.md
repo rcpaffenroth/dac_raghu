@@ -2,7 +2,7 @@
 jupyter:
   jupytext:
     cell_metadata_filter: -all
-    formats: ipynb,py:light,md
+    formats: ipynb,py:percent,md
     text_representation:
       extension: .md
       format_name: markdown
@@ -68,6 +68,7 @@ from ipywidgets import interact, widgets
 from base64 import b64encode
 
 import json
+import gc
 %matplotlib inline
 ```
 
@@ -227,6 +228,7 @@ models['better']['runs'] = []
 
 ```python
 def evaluate_model(model_name, run_idx, models=models, env=env, movie=True):
+   gc.collect()
    # Make a movie of a trained agent
    obs = env.reset()[0]
 

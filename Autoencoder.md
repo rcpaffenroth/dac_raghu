@@ -145,8 +145,8 @@ py.plot(x_hat)
 
 x_hat = decoder(h+torch.tensor([0.5, 0.5])).detach()
 py.plot(x_hat)
-
 ```
+
 
 ```python colab={"base_uri": "https://localhost:8080/", "height": 282} id="546aaa84-980e-4519-8bde-beee7a2d61aa" outputId="45b83edd-0383-4181-cab9-c1cba9ef585d"
 # h = torch.Tensor([2.8186, -2.0229])

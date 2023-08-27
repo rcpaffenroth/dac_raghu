@@ -76,7 +76,7 @@ import gc
 
 # %%
 # For 16 trajectories, this takes about 40 seconds on a RTX 4090
-number_of_trajectories = 32
+number_of_trajectories = 1024
 
 # %% [markdown]
 # # The Lander environment.  
