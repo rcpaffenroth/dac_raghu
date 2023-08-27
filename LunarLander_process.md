@@ -7,7 +7,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.15.0
+      jupytext_version: 1.15.1
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -112,8 +112,8 @@ all_data.to_parquet('data/lander/all_data.parquet')
 ```python
 # Example of slicing out x,y values for time stepss 1..4 for all the runs of all the models
 all_data.loc[:, (range(1,5),('x','y'))]
-
 ```
+
 
 ```python
 #  Just the better runs, but all the x values

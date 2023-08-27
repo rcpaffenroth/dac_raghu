@@ -2,34 +2,40 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: -all
-#     formats: ipynb,py:light,md
+#     formats: ipynb,py:percent,md
 #     text_representation:
 #       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.0
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
+# %% [markdown]
 # <a target="_blank" href="https://colab.research.google.com/github/rcpaffenroth/dac_raghu/blob/main/LunarLander.ipynb">
 #   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 # </a>
 
+# %% [markdown]
 # # Setup and libraries
 
+# %% [markdown]
 # ## Colab specific stuff
 #
 # This is some code to make sure that the notebook works in Colab. It's not used when you are running things locally.
 
+# %%
 import sys
 IN_COLAB = 'google.colab' in sys.modules
 
+# %%
 if IN_COLAB:
   # ! apt-get install swig
   # ! pip install stable-baselines3[extra] gymnasium[box2d] huggingface_sb3
+  pass
 else:
   # Otherwise, install locally and you need the following
   # NOTE: Need "gym" and "gymnasium" installed, since we use "gymnasium" for the LunarLander environment
@@ -38,11 +44,12 @@ else:
   # pip install stable-baselines3[extra] gymnasium[box2d] huggingface_sb3 imageio[ffmpeg] gym ipywidgets ipykernel pandas pyarrow
   pass
 
+# %% [markdown]
 # ## Load the needed libraries
 #
 # These are the libraries I will be using for this notebook
 
-# +
+# %%
 import gymnasium as gym
 import matplotlib.pylab as plt
 import numpy as np
@@ -61,23 +68,28 @@ from ipywidgets import interact, widgets
 from base64 import b64encode
 
 import json
+import gc
 # %matplotlib inline
-# -
 
+# %% [markdown]
 # # Parameters
 
+# %%
 # For 16 trajectories, this takes about 40 seconds on a RTX 4090
-number_of_trajectories = 1024
+number_of_trajectories = 32
 
+# %% [markdown]
 # # The Lander environment.  
 #
 # It is trying to land softly between the two flags
 
+# %%
 # Make the environment
 env = gym.make("LunarLander-v2", render_mode='rgb_array')
 observation = env.reset()
 
 
+# %% [markdown]
 # There is the top level link to the library
 #
 # https://gymnasium.farama.org/
@@ -88,6 +100,7 @@ observation = env.reset()
 #
 #
 
+# %% [markdown]
 # ### Action Space
 # There are four discrete actions available:
 #
@@ -100,13 +113,16 @@ observation = env.reset()
 # 3: fire right orientation engine
 #
 
+# %% [markdown]
 #
 # ### Observation Space
 #
 # The state is an 8-dimensional vector: the coordinates of the lander in x & y, its linear velocities in x & y, its angle, its angular velocity, and two booleans that represent whether each leg is in contact with the ground or not.
 
+# %%
 obs_names = ['x', 'y', 'vx', 'vy', 'theta', 'vtheta', 'leg1', 'leg2']
 
+# %% [markdown]
 # ### Rewards
 #
 # After every step a reward is granted. The total reward of an episode is the sum of the rewards for all the steps within that episode.
@@ -129,10 +145,12 @@ obs_names = ['x', 'y', 'vx', 'vy', 'theta', 'vtheta', 'leg1', 'leg2']
 #
 # An episode is considered a solution if it scores at least 200 points.
 
+# %% [markdown]
 # ### Starting State
 #
 # The lander starts at the top center of the viewport with a random initial force applied to its center of mass.
 
+# %% [markdown]
 # ### Episode Termination
 #
 # The episode finishes if:
@@ -145,12 +163,14 @@ obs_names = ['x', 'y', 'vx', 'vy', 'theta', 'vtheta', 'leg1', 'leg2']
 #
 # When Box2D determines that a body (or group of bodies) has come to rest, the body enters a sleep state which has very little CPU overhead. If a body is awake and collides with a sleeping body, then the sleeping body wakes up. Bodies will also wake up if a joint or contact attached to them is destroyed.
 
+# %% [markdown]
 # # Training and downloading models
 
+# %%
 models = {}
 
 
-# +
+# %%
 class RandomModel(object):
   def __init__(self, env):
     self.env = env
@@ -163,7 +183,7 @@ models['random'] = {}
 models['random']['model'] = random_model
 models['random']['runs'] = []
 
-# +
+# %%
 # This is an trained model that has a good architecture and loss function, but is not trained very much.  This takes about 30 sec on
 # a RTX 4090
 trained_model = PPO("MlpPolicy", env)
@@ -173,7 +193,7 @@ models['trained'] = {}
 models['trained']['model'] = trained_model
 models['trained']['runs'] = []
 
-# +
+# %%
 # This is a model from huggingface.co at https://huggingface.co/sb3/a2c-LunarLander-v2
 # Mean reward: 181.08 +/- 95.35
 checkpoint = load_from_hub(
@@ -187,7 +207,7 @@ models['good'] = {}
 models['good']['model'] = good_model
 models['good']['runs'] = []
 
-# +
+# %%
 # This is a model from huggingface.co at https://huggingface.co/araffin/ppo-LunarLander-v2
 # Mean reward:  283.49 +/- 13.74
 checkpoint = load_from_hub(
@@ -201,11 +221,12 @@ models['better']['model'] = better_model
 models['better']['runs'] = []
 
 
-# -
-
+# %% [markdown]
 # # Evaluate models
 
+# %%
 def evaluate_model(model_name, run_idx, models=models, env=env, movie=True):
+   gc.collect()
    # Make a movie of a trained agent
    obs = env.reset()[0]
 
@@ -237,8 +258,9 @@ def evaluate_model(model_name, run_idx, models=models, env=env, movie=True):
       imageio.mimsave(f'data/lander/{model_name}_{run_idx}_trajectory.mp4', images, fps=15)
 
 
+# %%
 
-# +
+# %%
 pathlib.Path('data/lander').mkdir(exist_ok=True, parents=True)
 
 info = {'models': ['random', 'trained', 'good', 'better'],
@@ -253,12 +275,14 @@ for i in range(number_of_trajectories):
     evaluate_model('trained', i)
     evaluate_model('good', i)
     evaluate_model('better', i)
-# -
 
+# %% [markdown]
 # # Basic visualization and analysis
 
+# %% [markdown]
 # ## Rewards
 
+# %%
 info = json.load(open('data/lander/info.json', 'r'))
 for model_name in info['models']:
     total_rewards = []
@@ -269,9 +293,10 @@ for model_name in info['models']:
     print(f"{model_name}: {np.mean(total_rewards):.2f} +/- {np.std(total_rewards):.2f}")
 
 
+# %% [markdown]
 # ## Cool little visualization tool
 
-# +
+# %%
 info = json.load(open('data/lander/info.json', 'r'))
 
 @interact(model_name=info['models'], 
@@ -297,6 +322,5 @@ def show_video(model_name, run_idx):
       ax[2].plot(data['vx'], data['vy'])
       ax[2].set_title('velocity')
       plt.tight_layout()
-# -
-
+# %%
 

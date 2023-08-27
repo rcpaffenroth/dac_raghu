@@ -2,36 +2,38 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: -all
-#     formats: ipynb,py:light,md
+#     formats: ipynb,py:percent,md
 #     text_representation:
 #       extension: .py
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.15.0
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
 #     name: python3
 # ---
 
+# %% [markdown]
 # # Setup and libraries
 
+# %% [markdown]
 # ## Load the needed libraries
 #
 # These are the libraries I will be using for this notebook
 
-# +
+# %%
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
 import json
 
 # %matplotlib inline
-# -
 
+# %% [markdown]
 # # Write files
 
-# +
+# %%
 # This section produces the data for a generative model of the Lunar Lander
 # Create a single dataframe with all the data
 # each row is a single run of a single model
@@ -102,15 +104,17 @@ def uniform_data_for_autoencoder(info, entries_per_run=100):
     return all_data
 info = json.load(open('data/lander/info.json', 'r'))
 all_data = uniform_data_for_autoencoder(info)
-# -
 
+# %%
 all_data.to_parquet('data/lander/all_data.parquet')
 
+# %%
 # Example of slicing out x,y values for time stepss 1..4 for all the runs of all the models
 all_data.loc[:, (range(1,5),('x','y'))]
 
 
+# %%
 #  Just the better runs, but all the x values
 all_data.loc[('better', slice(None)), (slice(None),('x',))]
 
-
+# %%

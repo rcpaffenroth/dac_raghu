@@ -7,7 +7,7 @@ jupyter:
       extension: .md
       format_name: markdown
       format_version: '1.3'
-      jupytext_version: 1.15.0
+      jupytext_version: 1.15.1
   kernelspec:
     display_name: Python 3 (ipykernel)
     language: python
@@ -35,6 +35,7 @@ IN_COLAB = 'google.colab' in sys.modules
 if IN_COLAB:
   ! apt-get install swig
   ! pip install stable-baselines3[extra] gymnasium[box2d] huggingface_sb3
+  pass
 else:
   # Otherwise, install locally and you need the following
   # NOTE: Need "gym" and "gymnasium" installed, since we use "gymnasium" for the LunarLander environment
@@ -85,8 +86,8 @@ It is trying to land softly between the two flags
 # Make the environment
 env = gym.make("LunarLander-v2", render_mode='rgb_array')
 observation = env.reset()
-
 ```
+
 
 There is the top level link to the library
 
@@ -255,6 +256,9 @@ def evaluate_model(model_name, run_idx, models=models, env=env, movie=True):
    if movie:
       # Save the movie
       imageio.mimsave(f'data/lander/{model_name}_{run_idx}_trajectory.mp4', images, fps=15)
+```
+
+```python
 
 ```
 
@@ -289,8 +293,8 @@ for model_name in info['models']:
         # Print the total reward for each model
         total_rewards.append(np.sum(data['reward']))
     print(f"{model_name}: {np.mean(total_rewards):.2f} +/- {np.std(total_rewards):.2f}")
-
 ```
+
 
 ## Cool little visualization tool
 
@@ -321,7 +325,7 @@ def show_video(model_name, run_idx):
       ax[2].set_title('velocity')
       plt.tight_layout()
 ```
-
 ```python
 
 ```
+
