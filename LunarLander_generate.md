@@ -76,7 +76,7 @@ import gc
 
 ```python
 # For 16 trajectories, this takes about 40 seconds on a RTX 4090
-number_of_trajectories = 1024
+number_of_trajectories = 4
 ```
 
 # The Lander environment.  
@@ -270,15 +270,26 @@ pathlib.Path('data/lander').mkdir(exist_ok=True, parents=True)
 info = {'models': ['random', 'trained', 'good', 'better'],
         'number_of_trajectories': number_of_trajectories,
 }
+```
 
-json.dump(info, open('data/lander/info.json', 'w'))
+```python
+batch=True
+if pathlib.Path('data/lander/run.json').exists() and batch:
+    run_info = json.load(open('data/lander/run.json', 'r'))
+    start_idx = run_info['start']
+    end_idx = run_info['end']
+    movie=False
+else:
+    start_idx = 0
+    end_idx = number_of_trajectories
+    movie=True
 
-for i in range(number_of_trajectories):
-    print(f'Generating trajectory {i} of {number_of_trajectories}')
-    evaluate_model('random', i)
-    evaluate_model('trained', i)
-    evaluate_model('good', i)
-    evaluate_model('better', i)
+for i in range(start_idx, end_idx):
+    print(f'Generating trajectory {i}:{start_idx}:{end_idx}')
+    evaluate_model('random', i, movie=movie)
+    evaluate_model('trained', i, movie=movie)
+    evaluate_model('good', i, movie=movie)
+    evaluate_model('better', i, movie=movie)
 ```
 
 # Basic visualization and analysis
@@ -290,7 +301,7 @@ for i in range(number_of_trajectories):
 info = json.load(open('data/lander/info.json', 'r'))
 for model_name in info['models']:
     total_rewards = []
-    for run_idx in range(info['number_of_trajectories']):
+    for run_idx in range(number_of_trajectories):
         data = pd.read_parquet(f"data/lander/{model_name}_{run_idx}_trajectory.parquet")  
         # Print the total reward for each model
         total_rewards.append(np.sum(data['reward']))
@@ -301,31 +312,32 @@ for model_name in info['models']:
 ## Cool little visualization tool
 
 ```python
-info = json.load(open('data/lander/info.json', 'r'))
+if not batch:
+  info = json.load(open('data/lander/info.json', 'r'))
 
-@interact(model_name=info['models'], 
-          run_idx=widgets.IntSlider(min=0, max=info['number_of_trajectories']-1, 
-                                    step=1, value=0))
-def show_video(model_name, run_idx):
-      name = f'data/lander/{model_name}_{run_idx}_trajectory.mp4'
-      mp4 = open(name,'rb').read()
-      data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
-      # This puts the video in the notebook
-      display(HTML("""
-      <video width=400 controls>
-            <source src="%s" type="video/mp4">
-      </video>
-      """ % data_url))
-      # plot various data for the run 
-      _, ax = plt.subplots(1, 3)
-      data = pd.read_parquet(f"data/lander/{model_name}_{run_idx}_trajectory.parquet")
-      ax[0].plot(data['reward'])
-      ax[0].set_title('reward')
-      ax[1].plot(data['x'], data['y'])
-      ax[1].set_title('position')
-      ax[2].plot(data['vx'], data['vy'])
-      ax[2].set_title('velocity')
-      plt.tight_layout()
+  @interact(model_name=info['models'], 
+            run_idx=widgets.IntSlider(min=0, max=number_of_trajectories-1, 
+                                      step=1, value=0))
+  def show_video(model_name, run_idx):
+        name = f'data/lander/{model_name}_{run_idx}_trajectory.mp4'
+        mp4 = open(name,'rb').read()
+        data_url = "data:video/mp4;base64," + b64encode(mp4).decode()
+        # This puts the video in the notebook
+        display(HTML("""
+        <video width=400 controls>
+              <source src="%s" type="video/mp4">
+        </video>
+        """ % data_url))
+        # plot various data for the run 
+        _, ax = plt.subplots(1, 3)
+        data = pd.read_parquet(f"data/lander/{model_name}_{run_idx}_trajectory.parquet")
+        ax[0].plot(data['reward'])
+        ax[0].set_title('reward')
+        ax[1].plot(data['x'], data['y'])
+        ax[1].set_title('position')
+        ax[2].plot(data['vx'], data['vy'])
+        ax[2].set_title('velocity')
+        plt.tight_layout()
 ```
 ```python
 

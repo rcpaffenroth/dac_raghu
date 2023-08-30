@@ -1,5 +1,12 @@
+*.mp4
+*.parquet
+*.tar.gz
+
+
 # Movies and trajectory files
 data/lander/*
+data/lander_just_parquet/*
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
